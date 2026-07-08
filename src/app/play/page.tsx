@@ -144,15 +144,9 @@ function PlayContent() {
 
   const copyResults = useCallback(() => {
     const emojiBar = results.map((r) => scoreEmoji(r.finalScore)).join("");
-    const lines = results.map(
-      (r, i) =>
-        `${i + 1}. ${r.city.name}, ${r.city.country} — ${r.roundLabel} — ${formatDistance(r.distanceKm)} — ${r.baseScore} × ${r.multiplier} = ${r.finalScore} pts`
-    );
     const text = [
       "🌍 GlobeGuess Challenge",
       `${emojiBar}  ${totalScore} / ${MAX_POSSIBLE_SCORE}`,
-      "",
-      ...lines,
       "",
       challengeUrl,
     ].join("\n");
