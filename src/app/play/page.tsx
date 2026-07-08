@@ -4,6 +4,10 @@ import dynamic from "next/dynamic";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { City } from "@/data/cities";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Toast } from "@/components/ui/Toast";
 import {
   decodeCityIds,
   formatDistance,
@@ -30,6 +34,18 @@ type RoundResult = {
   finalScore: number;
   roundLabel: string;
 };
+
+function PlayAmbient() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+    >
+      <div className="absolute -left-1/4 top-0 h-[400px] w-[400px] rounded-full bg-cyan-500/[0.06] blur-[100px]" />
+      <div className="absolute -right-1/4 top-1/3 h-[360px] w-[360px] rounded-full bg-violet-600/[0.07] blur-[100px]" />
+    </div>
+  );
+}
 
 function PlayContent() {
   const router = useRouter();
@@ -145,95 +161,117 @@ function PlayContent() {
 
   if (roundCities.length !== GAME_ROUNDS) {
     return (
-      <div className="flex flex-1 items-center justify-center text-zinc-400">
-        Loading…
-      </div>
+      <>
+        <PlayAmbient />
+        <div className="flex flex-1 items-center justify-center text-white/50">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-8 w-8 animate-pulse rounded-full border-2 border-cyan-400/30 border-t-cyan-400" />
+            <span className="text-sm font-medium">Loading challenge…</span>
+          </div>
+        </div>
+      </>
     );
   }
 
   if (isFinished) {
     return (
-      <div className="flex flex-1 flex-col gap-4 px-4 pb-safe pt-4">
-        <header className="text-center">
-          <h1 className="text-2xl font-bold text-white">Challenge Complete</h1>
-          <p className="mt-1 text-3xl font-semibold text-emerald-400">
-            {totalScore} / {MAX_POSSIBLE_SCORE}
-          </p>
-        </header>
+      <>
+        <PlayAmbient />
+        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-5 pb-safe pt-6 sm:px-8 sm:pt-8">
+          <header className="text-center">
+            <Badge tone="accent" className="mb-3">
+              Challenge Complete
+            </Badge>
+            <h1 className="font-display text-3xl font-bold tracking-tight text-white">
+              Final Score
+            </h1>
+            <p className="mt-2 font-display text-5xl font-bold tracking-tight">
+              <span className="bg-gradient-to-r from-emerald-300 to-cyan-300 bg-clip-text text-transparent">
+                {totalScore}
+              </span>
+              <span className="text-2xl font-semibold text-white/35">
+                {" "}
+                / {MAX_POSSIBLE_SCORE}
+              </span>
+            </p>
+          </header>
 
-        <div className="overflow-x-auto rounded-xl border border-zinc-800">
-          <table className="w-full min-w-[520px] text-sm">
-            <thead>
-              <tr className="border-b border-zinc-800 bg-zinc-900/80 text-left text-zinc-400">
-                <th className="px-3 py-2">#</th>
-                <th className="px-3 py-2">City</th>
-                <th className="px-3 py-2">Diff</th>
-                <th className="px-3 py-2 text-right">Distance</th>
-                <th className="px-3 py-2 text-right">Base</th>
-                <th className="px-3 py-2 text-right">×</th>
-                <th className="px-3 py-2 text-right">Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((r, i) => (
-                <tr
-                  key={r.city.id}
-                  className="border-b border-zinc-800/60 last:border-0"
-                >
-                  <td className="px-3 py-2.5 text-zinc-500">{i + 1}</td>
-                  <td className="px-3 py-2.5">
-                    <span className="text-white">{r.city.name}</span>
-                    <span className="ml-1 text-zinc-500">{r.city.country}</span>
-                  </td>
-                  <td className="px-3 py-2.5 text-zinc-400">{r.roundLabel}</td>
-                  <td className="px-3 py-2.5 text-right text-zinc-300">
-                    {formatDistance(r.distanceKm)}
-                  </td>
-                  <td className="px-3 py-2.5 text-right text-zinc-300">
-                    {r.baseScore}
-                  </td>
-                  <td className="px-3 py-2.5 text-right text-zinc-400">
-                    {r.multiplier}x
-                  </td>
-                  <td className="px-3 py-2.5 text-right font-medium text-emerald-400">
-                    {r.finalScore}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Card variant="glass" className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[520px] text-sm">
+                <thead>
+                  <tr className="border-b border-white/[0.06] bg-white/[0.02] text-left text-xs font-medium uppercase tracking-wider text-white/40">
+                    <th className="px-4 py-3">#</th>
+                    <th className="px-4 py-3">City</th>
+                    <th className="px-4 py-3">Diff</th>
+                    <th className="px-4 py-3 text-right">Distance</th>
+                    <th className="px-4 py-3 text-right">Base</th>
+                    <th className="px-4 py-3 text-right">×</th>
+                    <th className="px-4 py-3 text-right">Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.map((r, i) => (
+                    <tr
+                      key={r.city.id}
+                      className="border-b border-white/[0.04] transition-colors duration-200 last:border-0 hover:bg-white/[0.02]"
+                    >
+                      <td className="px-4 py-3 text-white/40">{i + 1}</td>
+                      <td className="px-4 py-3">
+                        <span className="font-medium text-white">
+                          {r.city.name}
+                        </span>
+                        <span className="ml-1.5 text-white/40">
+                          {r.city.country}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge tone="neutral">{r.roundLabel}</Badge>
+                      </td>
+                      <td className="px-4 py-3 text-right text-white/70">
+                        {formatDistance(r.distanceKm)}
+                      </td>
+                      <td className="px-4 py-3 text-right text-white/70">
+                        {r.baseScore}
+                      </td>
+                      <td className="px-4 py-3 text-right text-white/45">
+                        {r.multiplier}x
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold text-emerald-300">
+                        {r.finalScore}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          <div className="mt-auto flex flex-col gap-3 pb-2">
+            <Button variant="primary" size="lg" fullWidth onClick={copyResults}>
+              Copy results
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              fullWidth
+              onClick={copyChallengeLink}
+            >
+              Copy challenge link
+            </Button>
+            <Button
+              variant="tertiary"
+              size="lg"
+              fullWidth
+              onClick={() => router.push("/")}
+            >
+              Back to home
+            </Button>
+          </div>
+
+          {copyFeedback && <Toast message={copyFeedback} />}
         </div>
-
-        <div className="mt-auto flex flex-col gap-3 pb-2">
-          <button
-            type="button"
-            onClick={copyResults}
-            className="min-h-12 rounded-xl bg-emerald-600 px-4 py-3 text-base font-semibold text-white active:bg-emerald-700"
-          >
-            Copy results
-          </button>
-          <button
-            type="button"
-            onClick={copyChallengeLink}
-            className="min-h-12 rounded-xl border border-zinc-700 px-4 py-3 text-base font-medium text-zinc-200 active:bg-zinc-800"
-          >
-            Copy challenge link
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push("/")}
-            className="min-h-12 rounded-xl px-4 py-3 text-base text-zinc-400 active:text-white"
-          >
-            Back to home
-          </button>
-        </div>
-
-        {copyFeedback && (
-          <p className="fixed bottom-24 left-1/2 -translate-x-1/2 rounded-full bg-zinc-800 px-4 py-2 text-sm text-white shadow-lg">
-            {copyFeedback}
-          </p>
-        )}
-      </div>
+      </>
     );
   }
 
@@ -241,81 +279,96 @@ function PlayContent() {
   const roundMultiplier = getRoundMultiplier(roundIndex);
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="flex shrink-0 items-center justify-between gap-2 px-4 pb-2 pt-safe">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-zinc-500">
-            Round {roundIndex + 1} of {GAME_ROUNDS} · {roundLabel} ·{" "}
-            {roundMultiplier}x
-          </p>
-          <p className="text-sm font-medium text-emerald-400">
-            Score: {totalScore} / {MAX_POSSIBLE_SCORE}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={copyChallengeLink}
-          className="min-h-10 shrink-0 rounded-lg border border-zinc-700 px-3 py-2 text-xs font-medium text-zinc-300 active:bg-zinc-800"
-        >
-          Copy link
-        </button>
-      </header>
-
-      <div className="shrink-0 px-4 pb-3">
-        <h1 className="text-xl font-bold text-white">
-          Find:{" "}
-          <span className="text-sky-300">
-            {currentCity.name}, {currentCity.country}
-          </span>
-        </h1>
-        {!revealed && (
-          <p className="mt-1 text-sm text-zinc-500">
-            Tap the globe to lock in your guess
-          </p>
-        )}
-      </div>
-
-      <div className="relative h-[60vh] min-h-[280px] w-full shrink-0">
-        <Globe
-          onGuess={handleGuess}
-          guessMarker={revealed ? lockedGuess : null}
-          actualMarker={
-            revealed ? { lat: currentCity.lat, lng: currentCity.lng } : null
-          }
-          interactive={!revealed}
-        />
-      </div>
-
-      <div className="shrink-0 px-4 pb-safe pt-3">
-        {revealed && lastResult && (
-          <div className="rounded-xl border border-zinc-700 bg-zinc-900/90 p-4">
-            <p className="text-lg font-semibold text-white">
-              {formatDistance(lastResult.distanceKm)} away —{" "}
-              <span className="text-emerald-400">
-                {lastResult.finalScore} points
+    <>
+      <PlayAmbient />
+      <div className="flex min-h-dvh flex-col">
+        <header className="flex shrink-0 items-center justify-between gap-3 px-5 pb-3 pt-safe sm:px-8">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone="neutral">
+                Round {roundIndex + 1}/{GAME_ROUNDS}
+              </Badge>
+              <Badge tone="accent">
+                {roundLabel} · {roundMultiplier}x
+              </Badge>
+            </div>
+            <p className="mt-2 text-sm font-medium text-white/55">
+              Score{" "}
+              <span className="font-semibold text-emerald-300">
+                {totalScore}
               </span>
+              <span className="text-white/35"> / {MAX_POSSIBLE_SCORE}</span>
             </p>
-            <p className="mt-1 text-sm text-zinc-400">
-              Base score {lastResult.baseScore} × {lastResult.multiplier} (
-              {lastResult.roundLabel})
-            </p>
-            <button
-              type="button"
-              onClick={nextRound}
-              className="mt-4 w-full min-h-12 rounded-xl bg-emerald-600 px-4 py-3 text-base font-semibold text-white active:bg-emerald-700"
-            >
-              {isLastRound ? "See results" : "Next"}
-            </button>
           </div>
-        )}
-      </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={copyChallengeLink}
+            className="shrink-0"
+          >
+            Copy link
+          </Button>
+        </header>
 
-      {copyFeedback && (
-        <p className="fixed bottom-24 left-1/2 -translate-x-1/2 rounded-full bg-zinc-800 px-4 py-2 text-sm text-white shadow-lg">
-          {copyFeedback}
-        </p>
-      )}
-    </div>
+        <div className="shrink-0 px-5 pb-4 sm:px-8">
+          <p className="text-xs font-medium uppercase tracking-widest text-white/40">
+            Find this city
+          </p>
+          <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            <span className="bg-gradient-to-r from-cyan-200 to-violet-300 bg-clip-text text-transparent">
+              {currentCity.name}
+            </span>
+            <span className="text-white/50">, {currentCity.country}</span>
+          </h1>
+          {!revealed && (
+            <p className="mt-2 text-sm text-white/45">
+              Tap the globe to lock in your guess
+            </p>
+          )}
+        </div>
+
+        <div className="relative mx-5 min-h-[280px] shrink-0 overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.02] shadow-[0_16px_48px_-16px_rgba(0,0,0,0.7),inset_0_1px_0_0_rgba(255,255,255,0.06)] sm:mx-8 h-[60vh]">
+          <Globe
+            onGuess={handleGuess}
+            guessMarker={revealed ? lockedGuess : null}
+            actualMarker={
+              revealed ? { lat: currentCity.lat, lng: currentCity.lng } : null
+            }
+            interactive={!revealed}
+          />
+        </div>
+
+        <div className="shrink-0 px-5 pb-safe pt-4 sm:px-8">
+          {revealed && lastResult && (
+            <Card variant="glass" glow="cyan" className="p-5 sm:p-6">
+              <p className="text-lg font-semibold text-white">
+                {formatDistance(lastResult.distanceKm)}{" "}
+                <span className="text-white/45">away</span>
+              </p>
+              <p className="mt-1 font-display text-3xl font-bold tracking-tight text-emerald-300">
+                +{lastResult.finalScore}{" "}
+                <span className="text-base font-medium text-white/40">pts</span>
+              </p>
+              <p className="mt-2 text-sm text-white/45">
+                {lastResult.baseScore} base × {lastResult.multiplier} (
+                {lastResult.roundLabel})
+              </p>
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                className="mt-5"
+                onClick={nextRound}
+              >
+                {isLastRound ? "See results" : "Next round"}
+              </Button>
+            </Card>
+          )}
+        </div>
+
+        {copyFeedback && <Toast message={copyFeedback} />}
+      </div>
+    </>
   );
 }
 
@@ -324,8 +377,8 @@ export default function PlayPage() {
     <div className="flex min-h-dvh flex-col">
       <Suspense
         fallback={
-          <div className="flex flex-1 items-center justify-center text-zinc-400">
-            Loading…
+          <div className="flex flex-1 items-center justify-center text-white/50">
+            <div className="h-8 w-8 animate-pulse rounded-full border-2 border-cyan-400/30 border-t-cyan-400" />
           </div>
         }
       >

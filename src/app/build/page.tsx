@@ -4,12 +4,23 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { cities, type City } from "@/data/cities";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { PageShell } from "@/components/ui/PageShell";
+import { cn } from "@/lib/cn";
 import {
   encodeCityIds,
   GAME_ROUNDS,
   getRoundLabel,
   getRoundMultiplier,
 } from "@/lib/game";
+
+function difficultyTone(
+  difficulty: City["difficulty"]
+): "easy" | "medium" | "hard" {
+  return difficulty;
+}
 
 export default function BuildPage() {
   const router = useRouter();
@@ -42,49 +53,56 @@ export default function BuildPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col px-4 pb-safe pt-4">
-      <header className="mb-4">
+    <PageShell maxWidth="lg" className="pb-28">
+      <header className="mb-6">
         <Link
           href="/"
-          className="inline-flex min-h-10 items-center text-sm text-zinc-400 active:text-white"
+          className="inline-flex min-h-10 items-center text-sm font-medium text-white/50 transition-all duration-200 ease-out hover:translate-x-[-2px] hover:text-white/90"
         >
           ← Back
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Choose Your Own</h1>
-        <p className="mt-1 text-sm text-zinc-400">
-          Select {GAME_ROUNDS} cities in order ({selected.length}/{GAME_ROUNDS})
+        <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-white">
+          Choose Your Own
+        </h1>
+        <p className="mt-1.5 text-sm text-white/55">
+          Select {GAME_ROUNDS} cities in order ·{" "}
+          <span className="font-medium text-cyan-300/90">
+            {selected.length}/{GAME_ROUNDS}
+          </span>
         </p>
       </header>
 
-      <input
+      <Input
         type="search"
         placeholder="Search by city or country…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="mb-4 min-h-12 w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 text-base text-white placeholder:text-zinc-500 focus:border-sky-600 focus:outline-none"
+        className="mb-5"
       />
 
       {selected.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-2">
+        <div className="mb-5 flex flex-wrap gap-2">
           {selected.map((city, i) => (
             <button
               key={city.id}
               type="button"
               onClick={() => toggleCity(city)}
-              className="flex min-h-10 items-center gap-1.5 rounded-full bg-sky-900/60 px-3 py-1.5 text-sm text-sky-200 active:bg-sky-900"
+              className="group flex min-h-10 items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-500/10 px-3.5 py-1.5 text-sm text-cyan-100 transition-all duration-200 ease-out hover:scale-[1.02] hover:border-cyan-400/40 hover:bg-cyan-500/15 active:scale-[0.98]"
             >
-              <span className="font-medium text-sky-400">{i + 1}.</span>
-              {city.name}
-              <span className="text-xs text-sky-400/80">
+              <span className="font-semibold text-cyan-300">{i + 1}</span>
+              <span className="font-medium text-white/90">{city.name}</span>
+              <Badge tone="accent" className="!px-2 !py-0 text-[10px]">
                 {getRoundLabel(i)} · {getRoundMultiplier(i)}x
+              </Badge>
+              <span className="text-white/40 transition-colors group-hover:text-white/70">
+                ×
               </span>
-              <span className="text-sky-500">×</span>
             </button>
           ))}
         </div>
       )}
 
-      <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto pb-24">
+      <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto">
         {filtered.map((city) => {
           const order = selected.findIndex((c) => c.id === city.id);
           const isSelected = order >= 0;
@@ -96,49 +114,51 @@ export default function BuildPage() {
                 type="button"
                 disabled={disabled}
                 onClick={() => toggleCity(city)}
-                className={`flex w-full min-h-12 items-center justify-between rounded-xl px-4 py-3 text-left transition-colors ${
+                className={cn(
+                  "flex w-full min-h-[52px] items-center justify-between rounded-xl border px-4 py-3.5 text-left transition-all duration-200 ease-out",
                   isSelected
-                    ? "bg-sky-900/40 ring-1 ring-sky-700"
+                    ? "border-cyan-400/30 bg-cyan-500/10 shadow-[0_0_24px_-8px_rgba(34,211,238,0.25)]"
                     : disabled
-                      ? "opacity-40"
-                      : "bg-zinc-900 active:bg-zinc-800"
-                }`}
+                      ? "cursor-not-allowed border-white/[0.04] bg-white/[0.01] opacity-40"
+                      : "border-white/[0.06] bg-white/[0.03] hover:scale-[1.005] hover:border-white/12 hover:bg-white/[0.06] active:scale-[0.995]"
+                )}
               >
                 <div>
                   <span className="font-medium text-white">{city.name}</span>
-                  <span className="ml-2 text-sm text-zinc-500">
+                  <span className="ml-2 text-sm text-white/45">
                     {city.country}
                   </span>
                 </div>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs capitalize ${
-                    city.difficulty === "easy"
-                      ? "bg-emerald-900/60 text-emerald-400"
-                      : city.difficulty === "medium"
-                        ? "bg-amber-900/60 text-amber-400"
-                        : "bg-red-900/60 text-red-400"
-                  }`}
+                <Badge
+                  tone={
+                    isSelected
+                      ? "accent"
+                      : difficultyTone(city.difficulty)
+                  }
                 >
                   {isSelected
                     ? `${getRoundLabel(order)} · ${getRoundMultiplier(order)}x`
                     : city.difficulty}
-                </span>
+                </Badge>
               </button>
             </li>
           );
         })}
       </ul>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-zinc-800 bg-zinc-950/95 px-4 pb-safe pt-3 backdrop-blur">
-        <button
-          type="button"
-          disabled={selected.length !== GAME_ROUNDS}
-          onClick={startGame}
-          className="w-full min-h-12 rounded-xl bg-emerald-600 px-4 py-3 text-base font-semibold text-white disabled:opacity-40 active:bg-emerald-700"
-        >
-          Start ({selected.length}/{GAME_ROUNDS})
-        </button>
+      <div className="fixed inset-x-0 bottom-0 border-t border-white/[0.06] bg-[#070b14]/80 px-5 pb-safe pt-4 backdrop-blur-xl sm:px-8">
+        <div className="mx-auto max-w-2xl">
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            disabled={selected.length !== GAME_ROUNDS}
+            onClick={startGame}
+          >
+            Start ({selected.length}/{GAME_ROUNDS})
+          </Button>
+        </div>
       </div>
-    </div>
+    </PageShell>
   );
 }
