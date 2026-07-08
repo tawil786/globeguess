@@ -122,10 +122,16 @@ export function sampleRandomCities(
   return result;
 }
 
-export function scoreEmoji(score: number): string {
-  if (score >= 70) return "🟩";
-  if (score >= 40) return "🟨";
-  return "🟥";
+export function getScoreEmoji(baseScore: number): string {
+  if (baseScore >= 100) return "🎯";
+  if (baseScore >= 95) return "🔥";
+  if (baseScore >= 85) return "🌟";
+  if (baseScore >= 70) return "🎉";
+  if (baseScore >= 50) return "👍";
+  if (baseScore >= 30) return "😅";
+  if (baseScore >= 10) return "🤨";
+  if (baseScore >= 1) return "😬";
+  return "💀";
 }
 
 export function formatDistance(km: number): string {

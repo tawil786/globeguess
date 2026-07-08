@@ -19,7 +19,7 @@ import {
   lookupCities,
   MAX_POSSIBLE_SCORE,
   roundScore,
-  scoreEmoji,
+  getScoreEmoji,
 } from "@/lib/game";
 import type { LatLng } from "@/types/geo";
 
@@ -143,11 +143,12 @@ function PlayContent() {
   );
 
   const copyResults = useCallback(() => {
-    const emojiBar = results.map((r) => scoreEmoji(r.finalScore)).join("");
+    const roundLine = results
+      .map((r) => `${r.baseScore}${getScoreEmoji(r.baseScore)}`)
+      .join(" ");
     const text = [
-      "🌍 GlobeGuess Challenge",
-      `${emojiBar}  ${totalScore} / ${MAX_POSSIBLE_SCORE}`,
-      "",
+      roundLine,
+      `Final score: ${totalScore}/${MAX_POSSIBLE_SCORE}`,
       challengeUrl,
     ].join("\n");
     copyToClipboard(text, "Results copied!");
@@ -192,16 +193,13 @@ function PlayContent() {
 
           <Card variant="glass" className="overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[520px] text-sm">
+              <table className="w-full min-w-[480px] text-sm">
                 <thead>
                   <tr className="border-b border-white/[0.06] bg-white/[0.02] text-left text-xs font-medium uppercase tracking-wider text-white/40">
                     <th className="px-4 py-3">#</th>
                     <th className="px-4 py-3">City</th>
-                    <th className="px-4 py-3">Diff</th>
+                    <th className="px-4 py-3">Accuracy</th>
                     <th className="px-4 py-3 text-right">Distance</th>
-                    <th className="px-4 py-3 text-right">Base</th>
-                    <th className="px-4 py-3 text-right">×</th>
-                    <th className="px-4 py-3 text-right">Score</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -218,21 +216,23 @@ function PlayContent() {
                         <span className="ml-1.5 text-white/40">
                           {r.city.country}
                         </span>
+                        <p className="mt-0.5 text-xs text-white/35">
+                          {r.roundLabel} · {r.multiplier}x
+                        </p>
                       </td>
                       <td className="px-4 py-3">
-                        <Badge tone="neutral">{r.roundLabel}</Badge>
+                        <p className="font-display text-xl font-bold tracking-tight text-cyan-200">
+                          {r.baseScore}{" "}
+                          <span className="text-lg">
+                            {getScoreEmoji(r.baseScore)}
+                          </span>
+                        </p>
+                        <p className="mt-0.5 text-xs text-white/45">
+                          {r.finalScore} pts ({r.baseScore} × {r.multiplier})
+                        </p>
                       </td>
                       <td className="px-4 py-3 text-right text-white/70">
                         {formatDistance(r.distanceKm)}
-                      </td>
-                      <td className="px-4 py-3 text-right text-white/70">
-                        {r.baseScore}
-                      </td>
-                      <td className="px-4 py-3 text-right text-white/45">
-                        {r.multiplier}x
-                      </td>
-                      <td className="px-4 py-3 text-right font-semibold text-emerald-300">
-                        {r.finalScore}
                       </td>
                     </tr>
                   ))}
@@ -335,17 +335,21 @@ function PlayContent() {
         <div className="shrink-0 px-5 pb-safe pt-4 sm:px-8">
           {revealed && lastResult && (
             <Card variant="glass" glow="cyan" className="p-5 sm:p-6">
-              <p className="text-lg font-semibold text-white">
+              <p className="text-sm font-medium text-white/55">
                 {formatDistance(lastResult.distanceKm)}{" "}
-                <span className="text-white/45">away</span>
+                <span className="text-white/35">away</span>
               </p>
-              <p className="mt-1 font-display text-3xl font-bold tracking-tight text-emerald-300">
-                +{lastResult.finalScore}{" "}
-                <span className="text-base font-medium text-white/40">pts</span>
+              <p className="mt-2 font-display text-4xl font-bold tracking-tight">
+                <span className="bg-gradient-to-r from-cyan-200 via-sky-300 to-violet-300 bg-clip-text text-transparent">
+                  {lastResult.baseScore}
+                </span>{" "}
+                <span className="text-3xl">
+                  {getScoreEmoji(lastResult.baseScore)}
+                </span>
               </p>
-              <p className="mt-2 text-sm text-white/45">
-                {lastResult.baseScore} base × {lastResult.multiplier} (
-                {lastResult.roundLabel})
+              <p className="mt-2 text-sm text-white/50">
+                {lastResult.finalScore} pts this round ({lastResult.baseScore} ×{" "}
+                {lastResult.multiplier}, {lastResult.roundLabel})
               </p>
               <Button
                 variant="primary"
